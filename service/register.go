@@ -3,7 +3,6 @@ package service
 import (
 	"Target/conf"
 	model "Target/model"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,20 +35,9 @@ func CheckInfo(c *gin.Context, name, id, passw string, db *gorm.DB) bool {
 		return false
 	}
 
-	// 判断用户是否存在
-	// 待添加数据库
-	var user model.User
-	db.Where("id = ?", id).First(&user)
-	if user.ID != 0 {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    422,
-			"message": "用户已存在",
-		})
-		return false
-	}
-
 	return true
 }
+
 
 func Register(c *gin.Context) {
 
@@ -65,6 +53,17 @@ func Register(c *gin.Context) {
 
 	// 数据验证
 	if !CheckInfo(c, name, id, passw, db) {
+		return
+	}
+
+	// 判断用户是否存在
+	var user model.User
+	db.Where("id = ?", id).First(&user)
+	if user.ID != 0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    422,
+			"message": "用户已存在",
+		})
 		return
 	}
 
@@ -98,4 +97,40 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
+	db := conf.GetDB()
+
+	// 获取参数
+	var requestUser model.User
+	c.Bind(&requestUser)
+	id := requestUser.Id
+	passw := requestUser.Password
+
+	// 数据验证
+	if !CheckInfo(c, "", id, passw, db) {
+	    return
+	}
+
+	// 判断用户是否存在
+	var user model.User
+	db.Where("id = ?", id).First(&user)
+	if user.ID == 0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    422,
+			"message": "用户不存在",
+		})
+	}
+
+	//判断密码是否正确
+	if passw != user.Password {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    422,
+			"message": "密码错误",
+		})
+	}
+
+	// 返回结果
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "登录成功",
+	})
 }
