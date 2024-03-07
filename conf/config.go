@@ -1,8 +1,10 @@
 package conf
 
 import (
+	"Target/model"
 	"fmt"
 
+	"github.com/jinzhu/gorm"
 	"gopkg.in/ini.v1"
 )
 
@@ -17,6 +19,8 @@ var (
 	DbPassWord string
 	DbName     string
 )
+
+var DB *gorm.DB
 
 // 加载配置文件
 func LoadServer(file *ini.File) {
@@ -43,4 +47,32 @@ func Init() {
 	}
 	LoadServer(file)
 	Loadmysql(file)
+}
+
+func InitDB() *gorm.DB {
+	// 初始化数据库连接
+	args := fmt.Sprintf("%s:%s@(%s:%s)/%s?charset=%s&parseTime=true",
+		DbUser,
+		DbPassWord,
+		DbHost,
+		DbPort,
+		DbName,
+		"utf8",
+	)
+
+	db, err := gorm.Open(Db, args)
+	if err != nil {
+		panic("failed to connect database, err:" + err.Error())
+	}
+
+	// 自动迁移
+	db.AutoMigrate(&model.User{})
+
+	DB = db
+
+	return db
+}
+
+func GetDB() *gorm.DB {
+	return DB
 }
