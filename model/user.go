@@ -5,6 +5,6 @@ import "github.com/jinzhu/gorm"
 type User struct {
 	gorm.Model
 	Name     string `gorm:"varchar(20);not null"`
-	Id       string `gorm:"varchar(20);not null;unique"`
+	Username string `gorm:"varchar(20);not null;unique"`
 	Password string `gorm:"size:255; not null"`
 }

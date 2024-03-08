@@ -10,7 +10,7 @@ import (
 )
 
 // 数据验证
-func CheckInfo(c *gin.Context, name, id, passw string, db *gorm.DB) bool {
+func CheckRegisterInfo(c *gin.Context, name, id, passw string, db *gorm.DB) bool {
 	if len(id) == 0 {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code":    422,
@@ -38,7 +38,6 @@ func CheckInfo(c *gin.Context, name, id, passw string, db *gorm.DB) bool {
 	return true
 }
 
-
 func Register(c *gin.Context) {
 
 	db := conf.GetDB()
@@ -48,17 +47,17 @@ func Register(c *gin.Context) {
 	// 使用bind绑定数据
 	c.Bind(&requestUser)
 	name := requestUser.Name
-	id := requestUser.Id
+	username := requestUser.Username
 	passw := requestUser.Password
 
 	// 数据验证
-	if !CheckInfo(c, name, id, passw, db) {
+	if !CheckRegisterInfo(c, name, username, passw, db) {
 		return
 	}
 
 	// 判断用户是否存在
 	var user model.User
-	db.Where("id = ?", id).First(&user)
+	db.Where("username = ?", username).First(&user)
 	if user.ID != 0 {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code":    422,
@@ -70,7 +69,7 @@ func Register(c *gin.Context) {
 	// 用户注册
 	newUser := model.User{
 		Name:     name,
-		Id:       id,
+		Username: username,
 		Password: passw,
 	}
 
@@ -96,28 +95,51 @@ func Register(c *gin.Context) {
 	})
 }
 
+
+func CheckLoginInfo(c *gin.Context, username, passw string, db *gorm.DB) bool {
+    if len(username) == 0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    422,
+			"message": "用户名不能为空",
+		})
+		return false
+	}
+
+	if len(passw) < 6 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    422,
+			"message": "密码不能少于6位",
+		})
+		return false
+	}
+
+	return true
+}
+
 func Login(c *gin.Context) {
 	db := conf.GetDB()
 
 	// 获取参数
 	var requestUser model.User
 	c.Bind(&requestUser)
-	id := requestUser.Id
+	username := requestUser.Username
 	passw := requestUser.Password
 
 	// 数据验证
-	if !CheckInfo(c, "", id, passw, db) {
-	    return
+	if !CheckLoginInfo(c, username, passw, db) {
+		return
 	}
 
 	// 判断用户是否存在
 	var user model.User
-	db.Where("id = ?", id).First(&user)
+	db.Where("username = ?", username).First(&user)
 	if user.ID == 0 {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code":    422,
 			"message": "用户不存在",
 		})
+
+		return
 	}
 
 	//判断密码是否正确
@@ -126,6 +148,8 @@ func Login(c *gin.Context) {
 			"code":    422,
 			"message": "密码错误",
 		})
+
+		return
 	}
 
 	// 返回结果
