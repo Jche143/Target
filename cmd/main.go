@@ -23,12 +23,10 @@ func main() {
 	})
 
 	r.POST("/test", func(c *gin.Context) {
-		var users model.User
-		if err := c.Bind(&users); err != nil { //根据req的content type 自动推断如何绑定,form/json/xml等格式
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
+		users := model.User{}
+		c.Bind(&users)
+		username := users.Username
+		password := users.Password
 		// username := c.Query("username")
 		// password := c.Query("password")
 
@@ -40,8 +38,8 @@ func main() {
 			// "password": password,
 			// "username_p": username_p,
 			// "password_p": password_p,
-			"username": users.Username,
-			"password": users.Password,
+			"username":   username,
+			"password":   password,
 		})
 	})
 

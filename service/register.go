@@ -43,7 +43,7 @@ func Register(c *gin.Context) {
 	db := conf.GetDB()
 
 	// 获取参数
-	var requestUser model.User
+	requestUser := model.User{}
 	// 使用bind绑定数据
 	c.Bind(&requestUser)
 	name := requestUser.Name
@@ -95,9 +95,8 @@ func Register(c *gin.Context) {
 	})
 }
 
-
 func CheckLoginInfo(c *gin.Context, username, passw string, db *gorm.DB) bool {
-    if len(username) == 0 {
+	if len(username) == 0 {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code":    422,
 			"message": "用户名不能为空",
@@ -120,7 +119,7 @@ func Login(c *gin.Context) {
 	db := conf.GetDB()
 
 	// 获取参数
-	var requestUser model.User
+	requestUser := model.User{}
 	c.Bind(&requestUser)
 	username := requestUser.Username
 	passw := requestUser.Password
