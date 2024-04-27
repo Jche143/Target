@@ -16,13 +16,13 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/home", func(c *gin.Context) {
+	r.GET("/api/home", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "welcome to my website",
 		})
 	})
 
-	r.POST("/test", func(c *gin.Context) {
+	r.POST("/api/test", func(c *gin.Context) {
 		users := model.User{}
 		c.Bind(&users)
 		username := users.Username
@@ -44,10 +44,10 @@ func main() {
 	})
 
 	// 注册
-	r.POST("/register", service.Register)
+	r.POST("/api/register", service.Register)
 
 	// 登录
-	r.POST("/login", service.Login)
+	r.POST("/api/login", service.Login)
 
 	r.Run() // 启动服务，并监听 8080 端口
 }
